@@ -33,7 +33,7 @@ const MenuOverlay = ({ close }) => {
               { label: "Client", link: "/Client" },
 
               { label: "About", link: "/AboutUs" },
-              { label: "Blog", disabled: true },
+              { label: "Blog", link:"/Blogs" },
               { label: "Contact", disabled: true }
             ].map((item, i) => (
               <li

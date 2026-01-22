@@ -53,17 +53,22 @@
 
 // export default Navbar;
 
-
-
-
 import React, { useState, useEffect, useRef } from "react";
 import logo from "./photos/temp.png";
 import MenuOverlay from "./MenuOverlay.jsx";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import {
+  FaUserShield,
+  FaSignOutAlt,
+} from "react-icons/fa";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,6 +88,26 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      },
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+    setOpen(false);
+  };
+
   return (
     <>
       <nav
@@ -91,7 +116,6 @@ const Navbar = () => {
         `}
       >
         <div className="flex items-center justify-between h-32 px-16 bg-white/90 backdrop-blur-md shadow-sm">
-
           {/* Hamburger */}
           <div
             className="space-y-2 cursor-pointer group"
@@ -103,12 +127,20 @@ const Navbar = () => {
           </div>
 
           {/* Logo */}
-          <img
-            src={logo}
-            alt="Logo"
-            className="h-20 w-auto object-contain"
-          />
+          <img src={logo} alt="Logo" className="h-20 w-auto object-contain" />
         </div>
+        {!user ? (
+            <Link to="/login" className="p-2 border rounded-full">
+              <FaUserShield />
+            </Link>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-red-600"
+            >
+              <FaSignOutAlt /> Logout
+            </button>
+          )}
       </nav>
 
       {/* Overlay Menu */}
